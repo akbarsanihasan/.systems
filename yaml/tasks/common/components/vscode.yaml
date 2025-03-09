@@ -1,0 +1,50 @@
+- name: Downloading vs*ode for Linux x64
+  when: ansible_facts.system == 'Linux'
+  ansible.builtin.get_url:
+      url: https://code.visualstudio.com/sha/download?build=stable&os=linux-x64
+      dest: '{{ DOTFILES_CACHE_DIR }}/vscode.tar.gz'
+  tags:
+      - vscode
+      - gui_apps
+      - common
+
+- name: Preparing vs*ode installation
+  become: true
+  when: ansible_facts.system == 'Linux'
+  ansible.builtin.file:
+      dest: '/opt/vscode'
+      state: '{{ item }}'
+  loop:
+      - absent
+      - directory
+  tags:
+      - vscode
+      - gui_apps
+      - common
+
+- name: Installing vs*ode for Linux x64
+  become: true
+  when: ansible_facts.system == 'Linux'
+  ansible.builtin.unarchive:
+      src: '{{ DOTFILES_CACHE_DIR }}/vscode.tar.gz'
+      dest: '/opt/vscode'
+      extra_opts: [--strip-components=1]
+  tags:
+      - vscode
+      - gui_apps
+      - common
+
+- name: Installing vs*ode components for Linux x64
+  become: true
+  when: ansible_facts.system == 'Linux'
+  ansible.builtin.copy:
+      src: '{{ playbook_dir }}/.contents/{{ item.src }}'
+      dest: '{{ item.dest }}'
+      mode: 0755
+  loop:
+      - {src: 'bin/code', dest: /usr/local/bin/}
+      - {src: 'desktop/code.desktop', dest: /usr/local/share/applications/}
+  tags:
+      - vscode
+      - gui_apps
+      - common

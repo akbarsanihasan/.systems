@@ -1,0 +1,53 @@
+- name: Installing fcitx for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name:
+          - fcitx5
+          - fcitx5-frontend-qt5
+          - fcitx5-frontend-gtk3
+          - fcitx5-mozc
+          - fcitx5-hangul
+          - fcitx5-configtool
+  tags:
+      - fcitx
+      - hyprwm
+
+- name: Installing fcitx for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name:
+          - fcitx5
+          - fcitx5-qt
+          - fcitx5-gtk
+          - fcitx5-mozc
+          - fcitx5-hangul
+          - fcitx5-configtool
+  tags:
+      - fcitx
+      - hyprwm
+
+- name: Downloading fcitx theme
+  ansible.builtin.git:
+      repo: https://github.com/catppuccin/fcitx5.git
+      dest: '{{ DOTFILES_CACHE_DIR }}/fcitx-theme'
+      depth: 1
+      recursive: true
+      update: false
+  tags:
+      - fcitx
+      - hyprwm
+
+- name: Installing fcitx catppuccin theme
+  ansible.builtin.copy:
+      src: '{{ DOTFILES_CACHE_DIR }}/fcitx-theme/src/catppuccin-mocha-mauve'
+      dest: '{{ DATA_DIR }}/fcitx5/themes/'
+  tags:
+      - fcitx
+      - hyprwm

@@ -1,0 +1,78 @@
+- name: Downloading grub theme
+  ansible.builtin.git:
+      repo: https://github.com/akbarsanihasan/catppuccin-grub.git
+      dest: '{{ DOTFILES_CACHE_DIR }}/grub-theme'
+      version: '{{ GRUB_THEME_VERSION }}'
+      depth: 1
+      recursive: true
+      update: false
+  tags:
+      - grub
+      - hyprwm
+
+- name: Creating grub theme directory
+  become: true
+  ansible.builtin.file:
+      dest: /usr/share/grub/themes/
+      state: directory
+  tags:
+      - grub
+      - hyprwm
+
+- name: Installing grub theme
+  become: true
+  ansible.builtin.copy:
+      src: '{{ DOTFILES_CACHE_DIR }}/grub-theme/src/catppuccin-mocha-grub-theme'
+      dest: /usr/share/grub/themes/
+  tags:
+      - grub
+      - hyprwm
+
+- name: Configuring grub theme
+  become: true
+  ansible.builtin.ini_file:
+      path: /etc/default/grub
+      create: yes
+      option: '{{ item.option }}'
+      value: '{{ item.value }}'
+      no_extra_spaces: true
+      backup: true
+  loop:
+      - {
+            option: GRUB_THEME,
+            value: '/usr/share/grub/themes/catppuccin-mocha-grub-theme/theme.txt',
+        }
+      - {option: GRUB_DEFAULT, value: saved}
+      - {option: GRUB_SAVEDEFAULT, value: true}
+  tags:
+      - grub
+      - hyprwm
+
+- name: Ensure GRUB custom file exists
+  become: true
+  ansible.builtin.copy:
+      dest: /etc/grub.d/40_custom
+      content: |
+          #!/bin/sh
+          exec tail -n +3 $0
+
+          menuentry "Poweroff" {
+              echo "System shutting down..."
+              poweroff
+          }
+
+          menuentry "Reboot" {
+              echo "System rebooting..."
+              reboot
+          }
+      mode: '0755'
+  tags:
+      - grub
+      - hyprwm
+
+- name: Rebuilding grub configuration
+  become: true
+  ansible.builtin.shell: grub-mkconfig -o /boot/grub/grub.cfg
+  tags:
+      - grub
+      - hyprwm

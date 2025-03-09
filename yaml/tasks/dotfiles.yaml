@@ -1,0 +1,30 @@
+- name: Preparing to install common dotfiles
+  ansible.builtin.include_tasks: ./yaml/includes/install_dotfiles.yaml
+  vars:
+      dotfiles_name: common
+      dotfiles_path: common
+      dotfiles_tags: [dotfiles, common]
+  tags:
+      - common
+      - dotfiles
+
+- name: Preparing to install hyprwm config
+  ansible.builtin.include_tasks: ./yaml/includes/install_dotfiles.yaml
+  vars:
+      dotfiles_name: hyprwm
+      dotfiles_path: hyprwm
+      dotfiles_tags: [dotfiles, hyprwm]
+  tags:
+      - dotfiles
+      - hyprwm
+
+- name: Installing wallpaper
+  ansible.builtin.file:
+      src: '{{ playbook_dir }}/.contents/wallpapers'
+      dest: '{{ HOME_DIR }}/.wallpapers'
+      state: link
+      force: true
+  tags:
+      - wallpaper
+      - hyprwm
+      - common

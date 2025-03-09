@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+mainMod=SUPER
+mainMod2=ALT
+mainMod3=CTRL
+mainMod4=SHIFT
+
+if pgrep rofi; then
+    killall rofi
+    exit 0
+fi
+
+grep -oP '(?<=bind = ).*' "$HOME"/.config/hypr/includes/keybind.conf |
+    sed "s/\$mainMod2/$mainMod2/g" |
+    sed "s/\$mainMod3/$mainMod3/g" |
+    sed "s/\$mainMod4/$mainMod4/g" |
+    sed "s/\$mainMod/$mainMod/g" |
+    rofi -dmenu -p "󰌌" -theme "$HOME/.config/rofi/themes/whichkey.rasi"

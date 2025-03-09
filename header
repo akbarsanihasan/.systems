@@ -1,0 +1,61 @@
+# vim:ft=bash
+
+export DEBIAN_FRONTEND=noninteractive
+export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+export CMAKE_C_COMPILER_LAUNCHER=ccache
+export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/pipx-venv/bin:$PATH"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC="\033[0m"
+ERROR="${RED}ERROR${NC}"
+SUCCESS="${GREEN}OK${NC}"
+
+ANSIBLE_VERSION='11.1.0'
+LOGFILE="$HOME/.dotfiles.log"
+
+OS=""
+SUPPORTED_OS=(arch debian)
+if [[ -f /etc/os-release ]]; then
+    . /etc/os-release
+fi
+if [[ -n "$ID" ]]; then
+    OS=$(echo "$ID" | tr '[:upper:]' '[:lower:]')
+fi
+
+ISPYTHON=$ERROR
+ISPIPX=$ERROR
+ISANSIBLE=$ERROR
+ISGIT=$ERROR
+if command -v git >/dev/null 2>&1; then
+    ISGIT=$SUCCESS
+fi
+if command -v python >/dev/null 2>&1 || command -v python3 >/dev/null 2>&1; then
+    ISPYTHON=$SUCCESS
+fi
+if command -v pipx >/dev/null 2>&1; then
+    ISPIPX=$SUCCESS
+fi
+if command -v ansible >/dev/null 2>&1; then
+    ISANSIBLE=$SUCCESS
+fi
+
+ANSIBLE_ARGS=(--ask-become)
+if (($# > 0)); then
+    ANSIBLE_ARGS+=(--tags "build,directory")
+else
+    ANSIBLE_ARGS+=(--ask-vault-password)
+fi
+if [[ ! -f /etc/default/grub ]]; then
+    ANSIBLE_ARGS+=(--skip-tags grub)
+fi
+if [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
+    ANSIBLE_ARGS+=(--skip-tags "gui_apps,hyprwm")
+fi
+for SKIP_OS in "${SUPPORTED_OS[@]}"; do
+    if [[ $SKIP_OS != "$OS" ]]; then
+        ANSIBLE_ARGS+=(--skip-tags "$SKIP_OS")
+    fi
+done

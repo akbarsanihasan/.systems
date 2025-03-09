@@ -1,0 +1,49 @@
+- name: Installing bluetooth for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name: [bluez, blueman, firmware-iwlwifi]
+  tags:
+      - bluetooth
+      - hyprwm
+
+- name: Installing bluetooth for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name: [bluez, blueman]
+  tags:
+      - bluetooth
+      - hyprwm
+
+- name: Enabling experimental bluetooth
+  become: true
+  ansible.builtin.ini_file:
+      path: /etc/bluetooth/main.conf
+      section: 'General'
+      option: '{{ item.option }}'
+      value: '{{ item.value }}'
+      create: true
+      backup: true
+  loop:
+      - {option: Experimental, value: true}
+      - {option: KernelExperimental, value: true}
+  tags:
+      - bluetooth
+      - hyprwm
+
+- name: Enabling bluetooth using systemd
+  become: true
+  ansible.builtin.systemd:
+      scope: system
+      name: bluetooth
+      state: started
+      enabled: true
+  tags:
+      - bluetooth
+      - hyprwm

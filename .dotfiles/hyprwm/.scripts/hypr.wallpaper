@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+MODE=$1
+WPP_PATH=$2
+
+WPP_ROOT_DIR=$HOME/.wallpapers
+mapfile -t DAEMONS < <(pgrep -f -O 2 ".*wallpaper.*daemon.*")
+
+if ! systemctl --user is-active --quiet hyprpaper.service; then
+    echo "Cannot create multiple wallpaper daemon"
+    notify-send "Wallpaper daemon" "hyprpaer isn't starting"
+    exit 0
+fi
+
+if [[ "${#DAEMONS[@]}" -gt 0 ]]; then
+    for daemon in "${DAEMONS[@]}"; do
+        echo "${daemon}"
+        kill -9 "${daemon}"
+    done
+fi
+
+WPP_DIR=$WPP_PATH
+IMG=$WPP_PATH
+CURRENT_WPP=$(hyprctl hyprpaper listloaded)
+
+if [[ -z $WPP_PATH ]]; then
+    case $(date +%H) in
+    05 | 06 | 07 | 08 | 09 | 10)
+        WPP_DIR="$WPP_ROOT_DIR/monochrome"
+        ;;
+    11 | 12 | 13 | 14 | 15 | 16)
+        WPP_DIR="$WPP_ROOT_DIR/dark"
+        ;;
+    17 | 18 | 19 | 20 | 21 | 22)
+        WPP_DIR="$WPP_ROOT_DIR/pastel"
+        ;;
+    23 | 00 | 01 | 02 | 03 | 04)
+        WPP_DIR="$WPP_ROOT_DIR/green"
+        ;;
+    esac
+fi
+
+if [[ -d "$WPP_ROOT_DIR/$WPP_PATH" ]]; then
+    WPP_DIR="$WPP_ROOT_DIR/$WPP_PATH"
+fi
+
+if [[ -d $WPP_DIR ]]; then
+    IMG="$(find "$WPP_DIR" -type f ! -name "$(basename "$CURRENT_WPP")" | shuf -n 1)"
+fi
+
+apply() {
+    hyprctl hyprpaper reload ,"${IMG}"
+}
+
+daemon() {
+    while true; do
+        apply
+        sleep 599
+    done
+}
+
+case $MODE in
+"apply") apply ;;
+"daemon") daemon ;;
+esac

@@ -1,0 +1,33 @@
+- name: Downloading {{ hypr_name }} source
+  ansible.builtin.git:
+      repo: '{{ hypr_repo }}'
+      dest: '{{ hypr_dest }}'
+      version: '{{ version | default(omit) }}'
+      depth: 1
+      recursive: true
+      update: false
+  tags: '{{ hypr_tags }}'
+
+- name: Compiling {{ hypr_name }}
+  ansible.builtin.shell: |
+      cd {{ hypr_dest }}
+
+      cmake --no-warn-unused-cli \
+            -Bbuild \
+            -S. \
+            -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=/usr/local
+
+      cmake --build ./build \
+            --config Release \
+            --target all \
+            -j$(nproc 2>/dev/null || getconf _NPROCESSORS_CONF)
+  tags: '{{ hypr_tags }}'
+
+- name: Installing {{ hypr_name }}
+  become: true
+  ansible.builtin.shell: |
+      cd {{ hypr_dest }}
+      cmake --install ./build
+  tags: '{{ hypr_tags }}'

@@ -1,0 +1,32 @@
+# ENV
+export MOZ_ENABLE_WAYLAND=1
+
+export ELECTRON_OZONE_PLATFORM_HINT='auto'
+export ELECTRON_TRASH="trash-cli code"
+
+export GTK_IM_MODULE="fcitx"
+export QT_IM_MODULES="wayland;fcitx;ibus"
+export XMODIFIERS="@im=fcitx"
+
+export VISUAL="nvim"
+export EDITOR="nvim"
+
+export BROWSER="zen"
+
+export XDG_CURRENT_DESKTOP="Hyprland"
+export XDG_SESSION_TYPE="wayland"
+export XDG_SESSION_DESKTOP="Hyprland"
+
+export GDK_BACKEND="wayland,x11,*"
+export SDL_VIDEODRIVER="wayland"
+export CLUTTER_BACKEND="wayland"
+
+export QT_QPA_PLATFORMTHEME="qt5ct"
+export QT_QPA_PLATFORM='wayland;xcb'
+export QT_STYLE_OVERRIDE='Kvantum'
+export QT_AUTO_SCREEN_SCALE_FACTOR=1
+export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+
+export bitdepth=10
+
+export _JAVA_AWT_WM_NONREPARENTING=1

@@ -1,0 +1,25 @@
+{
+    "layer": "bottom",
+    "position": "top",
+    "reload_style_on_change": true,
+    "include": ["~/.config/waybar/left.jsonc", "~/.config/waybar/right.jsonc"],
+    "modules-left": [
+        "hyprland/workspaces",
+        "cpu",
+        "memory",
+        "disk",
+        "custom/updater",
+        "network#downspeed",
+        "network#upspeed",
+    ],
+    "modules-right": [
+        "tray",
+        "group/speaker",
+        "group/microphone",
+        "network",
+        "battery",
+        "battery#bat2",
+        "clock",
+        "custom/notification",
+    ],
+}

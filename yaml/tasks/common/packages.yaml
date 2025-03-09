@@ -1,0 +1,74 @@
+- name: Installing common packages for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name:
+          - zsh
+          - tmux
+          - btop
+          - fastfetch
+          - bat
+          - eza
+          - fzf
+          - trash-cli
+          - less
+          - tldr
+          - man
+          - fd-find
+          - jq
+          - ripgrep
+          - gawk
+  tags: common
+
+- name: Installing common packages for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name:
+          - zsh
+          - tmux
+          - btop
+          - fastfetch
+          - bat
+          - eza
+          - fzf
+          - trash-cli
+          - less
+          - tldr
+          - man
+          - fd
+          - jq
+          - ripgrep
+          - awk
+  tags: common
+
+- name: Detecting zsh binary path
+  register: zsh_path
+  ansible.builtin.shell: which zsh
+  tags: common
+
+- name: Changing default shell to zsh
+  become: true
+  when: zsh_path != ''
+  ansible.builtin.user:
+      shell: '{{ zsh_path.stdout }}'
+      name: '{{ ansible_user_id }}'
+  tags: common
+
+- name: Setting shell environment
+  ansible.builtin.shell: |
+      zsh -c "source {{ HOME_DIR }}/.zshrc"
+
+      if command -v bat &>/dev/null;then
+          bat cache --build
+      fi
+
+      if command -v batcat &>/dev/null;then
+          batcat cache --build
+      fi
+  tags: common

@@ -1,0 +1,294 @@
+- name: Installing hyprland build package for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name:
+          # aquamarine
+          - libwayland-dev
+          - wayland-protocols
+          - mesa-common-dev
+          - libgl1-mesa-dev
+          - libegl1-mesa-dev
+          - libgbm-dev
+          - hwdata
+          - seatd
+          - libsystemd0
+          - libseat-dev
+          - libpugixml-dev
+          - libdrm-dev
+          - libglvnd-dev
+          - libglvnd-core-dev
+          - libinput-dev
+          # hyprcursor
+          - libzip-dev
+          - librsvg2-dev
+          # hyprgraphics
+          - libjpeg-dev
+          - libwebp-dev
+          - libmagic-dev
+          - libspng-dev
+          - libjxl-dev
+          # hyprland
+          - xwayland
+          - xcb-proto
+          - cpio
+          # - glaze
+          - libre2-dev
+          - libpixman-1-dev
+          - libcairo2-dev
+          - libpango1.0-dev
+          - libliftoff-dev
+          - libdisplay-info-dev
+          - libtomlplusplus-dev
+          - libxcb1-dev
+          - libxcb-errors-dev
+          - libxcb-util-dev
+          - libxcb-keysyms1-dev
+          - libxcb-ewmh-dev
+          - libxcb-icccm4-dev
+          - libxcb-render-util0-dev
+          - libxcb-res0-dev
+          - libxcb-xfixes0-dev
+          - libxcb-composite0-dev
+          - libx11-dev
+          - libxkbcommon-dev
+          - libxkbcommon-x11-dev
+          - libxfixes-dev
+          - libxcomposite-dev
+          - libxrender-dev
+          - libxcursor-dev
+          # hyprqt
+          - qt6-wayland
+          - qt6-wayland-dev
+          - qt6-wayland-private-dev
+          - qt6-base-private-dev
+          - qt6-declarative-dev
+          - qt6-tools-dev
+          - qt6-tools-dev-tools
+          - qt6-qmltooling-plugins
+          - qtwayland5
+          - qtwayland5-dev-tools
+          # xdg-desktop-portal-hyprland
+          - libpipewire-0.3-dev
+          - libspa-0.2-dev
+          - libsdbus-c++-dev
+          # hyprlock
+          - libpam0g-dev
+  tags:
+      - hyprland
+      - hyprwm
+
+- name: Installing hyprland build package for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name:
+          # aquamarine
+          - wayland
+          - wayland-protocols
+          - hwdata
+          - systemd-libs
+          - mesa
+          - seatd
+          - pugixml
+          - libdrm
+          - libglvnd
+          - libinput
+          # hyprcursor
+          - libzip
+          - librsvg
+          # hyprgraphics
+          - libjpeg
+          - libwebp
+          - file
+          - libspng
+          - libjxl
+          # hyprland
+          - xorg-xwayland
+          - pixman
+          - cpio
+          - cairo
+          - pango
+          # - glaze
+          - tomlplusplus
+          - re2
+          - xcb-proto
+          - xcb-util
+          - xcb-util-keysyms
+          - xcb-util-wm
+          - xcb-util-errors
+          - libxcb
+          - libliftoff
+          - libdisplay-info
+          - libx11
+          - libxfixes
+          - libxcomposite
+          - libxrender
+          - libxcursor
+          - libxkbcommon
+          # hyprqt
+          - qt6-wayland
+          - qt5-wayland
+          # xdg-desktop-portal-hyprland
+          - pipewire
+          - sdbus-cpp
+          # hyprlock
+          - pam
+  tags:
+      - hyprland
+      - hyprwm
+
+- name: Downloading hyprland-protocols source
+  ansible.builtin.git:
+      repo: 'https://github.com/hyprwm/hyprland-protocols'
+      dest: '{{ DOTFILES_CACHE_DIR }}/hyprwm/hyprprotocols'
+      depth: 1
+      recursive: true
+      update: false
+  tags:
+      - hyprprotocols
+      - hyprland
+      - hyprwm
+
+- name: Compiling hyprland-protocols
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/hyprwm/hyprprotocols
+      meson setup build \
+            --wipe \
+            --prefix /usr/local \
+            --libexecdir lib \
+            --buildtype release \
+            --wrap-mode nodownload \
+  tags:
+      - hyprprotocols
+      - hyprland
+      - hyprwm
+
+- name: Installing hyprland-protocols
+  become: true
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/hyprwm/hyprprotocols
+      meson install -C build
+  tags:
+      - hyprprotocols
+      - hyprland
+      - hyprwm
+
+- name: Preparing to install hyprwm
+  ansible.builtin.include_tasks: ./yaml/includes/build_hyprland.yaml
+  vars:
+      hypr_name: "{{ item.repo.split('/')[1] }}"
+      hypr_repo: 'https://github.com/{{ item.repo }}.git'
+      hypr_dest: '{{ DOTFILES_CACHE_DIR }}/hyprwm/{{ item.dest }}'
+      hypr_version: '{{ item.version }}'
+      hypr_tags: "{{ [item.tags] + ['hyprland', 'hyprwm'] }}"
+  loop:
+      - {
+            repo: hyprwm/hyprutils,
+            dest: hyprutils,
+            version: '{{ HYPRUTILS_VERSION }}',
+            tags: 'hyprutils',
+        }
+      - {
+            repo: hyprwm/hyprlang,
+            dest: hyprlang,
+            version: '{{ HYPRLANG_VERSION }}',
+            tags: hyprlang,
+        }
+      - {
+            repo: hyprwm/hyprwayland-scanner,
+            dest: hyprscanner,
+            version: '{{ HYPRWAYLAND_SCANNER_VERSION }}',
+            tags: hyprwaylandscanner,
+        }
+      - {
+            repo: hyprwm/aquamarine,
+            dest: aqumarine,
+            version: '{{ AQUAMARINE_VERSION }}',
+            tags: aquamarine,
+        }
+      - {
+            repo: hyprwm/hyprgraphics,
+            dest: hyprgraphics,
+            version: '{{ HYPRGRAPHICS_VERSION }}',
+            tags: hyprgraphics,
+        }
+      - {
+            repo: hyprwm/hyprcursor,
+            dest: hyprcursor,
+            version: '{{ HYPRCURSOR_VERSION }}',
+            tags: hyprcursor,
+        }
+      - {
+            repo: hyprwm/Hyprland,
+            dest: hyprland,
+            version: '{{ HYPRLAND_VERSION }}',
+            tags: hyprland,
+        }
+      - {
+            repo: hyprwm/hyprland-qtutils,
+            dest: hyprqtutils,
+            version: '{{ HYPRQT_UTILS_VERSION }}',
+            tags: hyprqtutils,
+        }
+      - {
+            repo: hyprwm/hyprland-qt-support,
+            dest: hyprqtsupport,
+            version: '{{ HYPRQT_SUPPORT_VERSION }}',
+            tags: hyprqtsupport,
+        }
+      - {
+            repo: hyprwm/xdg-desktop-portal-hyprland,
+            dest: hyprportal,
+            version: '{{ XDG_PORTAL_HYPRLAND_VERSION }}',
+            tags: hyprportal,
+        }
+      - {
+            repo: hyprwm/hyprpaper,
+            dest: hyprpaper,
+            version: '{{ HYPRPAPER_VERSION }}',
+            tags: hyprpaper,
+        }
+      - {
+            repo: hyprwm/hypridle,
+            dest: hypridle,
+            version: '{{ HYPRIDLE_VERSION }}',
+            tags: hypridle,
+        }
+      - {
+            repo: hyprwm/hyprlock,
+            dest: hyprlock,
+            version: '{{ HYPRLOCK_VERSION }}',
+            tags: hyprlock,
+        }
+      - {
+            repo: hyprwm/hyprpicker,
+            dest: hyprpicker,
+            version: '{{ HYPRPICKER_VERSION }}',
+            tags: hyprpicker,
+        }
+  loop_control:
+      label: "{{ item.repo.split('/')[1] }}"
+  tags:
+      - hyprland
+      - hyprwm
+
+- name: Starting hyprwm application service using systemd
+  ansible.builtin.systemd_service:
+      scope: user
+      name: '{{ item }}'
+      state: started
+      enabled: true
+      daemon_reload: true
+  loop:
+      - hyprpaper
+      - hypridle
+      - xdg-desktop-portal-hyprland
+  tags:
+      - hyprland
+      - hyprwm

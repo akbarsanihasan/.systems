@@ -1,0 +1,18 @@
+- name: Installing nerdfonts
+  ansible.builtin.shell: |
+      if ! [[ -d {{ DOTFILES_CACHE_DIR }}/nerdfonts ]]; then
+         git clone --filter=blob:none --sparse \
+             https://github.com/ryanoasis/nerd-fonts.git \
+             {{ DOTFILES_CACHE_DIR }}/nerdfonts
+      fi
+
+      cd {{ DOTFILES_CACHE_DIR }}/nerdfonts
+
+      git sparse-checkout add patched-fonts/JetBrainsMono 
+      git sparse-checkout add patched-fonts/FiraCode
+
+      ./install.sh -U
+      ./install.sh -Up
+  tags:
+      - nerdfonts
+      - common

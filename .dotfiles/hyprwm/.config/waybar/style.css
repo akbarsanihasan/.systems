@@ -1,0 +1,113 @@
+@import './color.css';
+
+* {
+    border: none;
+    border-radius: 0;
+    font-size: 14px;
+    font-family:
+        Inter Display,
+        JetBrainsMono NFP,
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    font-weight: 600;
+    animation: unset;
+    transition: unset;
+    color: @lavender;
+}
+
+window#waybar {
+    background: transparent;
+}
+
+window#waybar > box {
+    background-color: @crust;
+    margin-bottom: 0.2rem;
+    border-bottom: 1px solid @surface1;
+    box-shadow: 0px 0px 0px 2px @crust;
+    padding: 0.2rem;
+}
+
+#workspaces {
+    margin-right: 0.8rem;
+}
+
+#workspaces button {
+    min-width: 1.3rem;
+    min-height: 1.3rem;
+    border-radius: 50%;
+}
+
+#workspaces button.empty label {
+    opacity: 0.6;
+}
+
+#workspaces button.active,
+#workspaces button:hover {
+    background-color: @lavender;
+}
+
+#workspaces button.active label,
+#workspaces button:hover label {
+    color: @crust;
+    opacity: 1;
+}
+
+#cpu,
+#memory,
+#disk,
+#custom-updater {
+    margin-right: 0.8rem;
+}
+
+#network.downspeed,
+#network.upspeed {
+    margin-right: 0.6rem;
+}
+
+#tray {
+    margin-right: 0.8rem;
+    border-radius: 0.4rem;
+}
+
+#tray menu {
+    border-radius: 0.4rem;
+}
+
+#tray menu menuitem {
+    padding: 0.3rem;
+    background-color: @crust;
+}
+
+#tray menu menuitem:hover {
+    padding: 0.3rem;
+    background-color: @base;
+}
+
+#microphone,
+#speaker {
+    margin-right: 0.3rem;
+}
+
+#network {
+    margin-right: 0.8rem;
+}
+
+#battery {
+    margin-right: 0.8rem;
+}
+
+#pulseaudio.input.source-muted,
+#pulseaudio.input-icon.source-muted,
+#pulseaudio.output.muted,
+#pulseaudio.output-icon.muted {
+    opacity: 0.3;
+}
+
+#clock {
+    margin-right: 0.3rem;
+}

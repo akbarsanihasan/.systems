@@ -1,0 +1,72 @@
+- name: Scanning basepath {{ dotfiles_name }} config dir
+  register: base_dir
+  ansible.builtin.find:
+      paths: '{{ playbook_dir }}/.dotfiles/{{ dotfiles_path }}'
+      file_type: directory
+      excludes: '*tasks'
+      hidden: true
+  tags: '{{ dotfiles_tags }}'
+
+- name: Scanning {{ dotfiles_name }} config dir
+  register: config_dir
+  ansible.builtin.find:
+      paths: '{{ item.path }}'
+      file_type: any
+      hidden: true
+  loop: '{{ base_dir.files }}'
+  loop_control:
+      label: '{{ item.path }}'
+  tags: '{{ dotfiles_tags }}'
+
+- name: Removing {{ dotfiles_name }} dotfiles
+  ansible.builtin.file:
+      dest: >-
+          {{ HOME_DIR }}/{{
+            item[1].path.split('/')[-2:] | join('/') if (item[1] is mapping and 'path' in item[1]) 
+            else item | basename
+          }}
+      state: absent
+  loop: >-
+      {{
+        q('subelements', config_dir.results, 'files', {'skip_missing': True})
+        +
+        lookup('fileglob', '{{ playbook_dir }}/.dotfiles/{{ dotfiles_path }}/*', wantlist=True)
+        +
+        lookup('fileglob', '{{ playbook_dir }}/.dotfiles/{{ dotfiles_path }}/.*', wantlist=True)
+      }}
+  loop_control:
+      label: >-
+          {{
+            item[1].path if (item[1] is mapping and 'path' in item[1]) 
+            else item
+          }}
+  tags: '{{ dotfiles_tags }}'
+
+- name: Installing {{ dotfiles_name }} dotfiles
+  ansible.builtin.file:
+      src: >-
+          {{
+            item[1].path if (item[1] is mapping and 'path' in item[1]) 
+            else item
+          }}
+      dest: >-
+          {{ HOME_DIR }}/{{
+            item[1].path.split('/')[-2:] | join('/') if (item[1] is mapping and 'path' in item[1]) 
+            else item | basename
+          }}
+      state: link
+  loop: >-
+      {{
+        q('subelements', config_dir.results, 'files', {'skip_missing': True})
+        +
+        lookup('fileglob', '{{ playbook_dir }}/.dotfiles/{{ dotfiles_path }}/*', wantlist=True)
+        +
+        lookup('fileglob', '{{ playbook_dir }}/.dotfiles/{{ dotfiles_path }}/.*', wantlist=True)
+      }}
+  loop_control:
+      label: >-
+          {{
+            item[1].path if (item[1] is mapping and 'path' in item[1]) 
+            else item
+          }}
+  tags: '{{ dotfiles_tags }}'

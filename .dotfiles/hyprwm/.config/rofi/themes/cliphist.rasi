@@ -1,0 +1,17 @@
+@import './common.rasi'
+
+window {
+   height: 0;
+   width: 30%;
+   location: south;
+   y-offset: -10%;
+}
+
+entry {
+    placeholder: "  Clipboard History";
+}
+
+listview {
+    dynamic: true;
+    lines: 6;
+}

@@ -1,0 +1,94 @@
+- name: Installing linux additional packages for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name:
+          - thunar
+          - ristretto
+          - mousepad
+          - okular
+          - file-roller
+
+          - network-manager-applet
+          - nm-connection-editor
+          - pavucontrol
+
+          - socat
+          - brightnessctl
+          - thunar-archive-plugin
+          - gvfs
+          - gvfs-backends
+          - ffmpegthumbnailer
+          - tumbler
+          - webp-pixbuf-loader
+          - mpv-mpris
+          - xdg-user-dirs
+  tags: hyprwm
+
+- name: Installing linux additional package for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name:
+          - thunar
+          - ristretto
+          - mousepad
+          - okular
+          - file-roller
+
+          - network-manager-applet
+          - nm-connection-editor
+          - pavucontrol
+
+          - socat
+          - brightnessctl
+          - thunar-archive-plugin
+          - gvfs
+          - gvfs-mtp
+          - ffmpegthumbnailer
+          - tumbler
+          - webp-pixbuf-loader
+          - mpv-mpris
+          - xdg-user-dirs
+  tags: hyprwm
+
+- name: Installing systemd packages services
+  become: true
+  ansible.builtin.copy:
+      src: '{{ playbook_dir }}/.contents/services/{{ item }}.service'
+      dest: '/usr/local/lib/systemd/user/'
+  loop: [xdg-user-dirs-update]
+  tags: hyprwm
+
+- name: Enabling services using systemd
+  ansible.builtin.systemd_service:
+      name: '{{ item.name }}'
+      scope: '{{ item.scope }}'
+      state: '{{ item.state | default(omit) }}'
+      enabled: '{{ item.enabled }}'
+      daemon_reload: true
+  loop:
+      - {name: xdg-user-dirs-update, scope: user, state: started, enabled: true}
+  tags: hyprwm
+
+- name: Bookmark xdg-user-dirs home
+  ansible.builtin.lineinfile:
+      path: '{{ CONFIG_DIR }}/gtk-3.0/bookmarks'
+      create: yes
+      state: present
+      line: 'file://{{ HOME_DIR }}/{{ item }}'
+      regexp: 'file://{{ HOME_DIR }}/{{ item }}'
+  loop:
+      - Documents
+      - Downloads
+      - Music
+      - Pictures
+      - Public
+      - Templates
+      - Videos
+  tags: hyprwm

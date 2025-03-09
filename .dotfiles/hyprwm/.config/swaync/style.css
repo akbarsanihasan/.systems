@@ -1,0 +1,192 @@
+@import './colors.css';
+
+* {
+    font-family:
+        Inter Display,
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    color: @lavender;
+    font-size: 1rem;
+    font-weight: 600;
+    box-shadow: unset;
+}
+
+#control-center-window .control-center {
+    min-width: 20rem;
+    background-color: @crust;
+    margin-top: 0.2rem;
+    margin-right: 0.1rem;
+    margin-left: 0.1rem;
+    padding: 0.6rem;
+    border: 1px solid @surface0;
+    box-shadow: 0px 0px 0px 2px @crust;
+}
+
+scrollbar,
+scrollbar trough,
+scrollbar slider {
+    all: unset;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.notification {
+    min-width: 15rem;
+    box-shadow: 0px 0px 0px 2px @crust;
+    margin: 4px;
+    background-color: @crust;
+    border-color: @surface0;
+}
+
+.notification .notification-default-action .notification-content {
+    padding: 0.6rem;
+}
+
+.notification .notification-default-action:hover .notification-content {
+    background-color: @base;
+}
+
+.notification .linked .notification-action:hover {
+    background-color: @base;
+}
+
+.notification .notification-content .text-box {
+    padding-left: 0.8rem;
+}
+
+.notification .notification-content .text-box box {
+    padding: 0.3rem 0;
+}
+
+.notification .notification-content .text-box .body {
+    opacity: 0.6;
+}
+
+.widget-title {
+    padding-bottom: 1rem;
+}
+
+.widget-title > label {
+    font-size: 1.6rem;
+    font-weight: 600;
+}
+
+.widget-title .control-center-clear-all {
+    border-radius: 0.6rem;
+    background-color: @base;
+    border: 1px solid @surface0;
+}
+
+.widget-title .control-center-clear-all label {
+    font-size: 0.9rem;
+}
+
+.widget-title .control-center-clear-all:hover {
+    background-color: @lavender;
+}
+
+.widget-title .control-center-clear-all:hover label {
+    color: @crust;
+}
+
+.widget-dnd .control-center-dnd {
+    margin: 0;
+    padding: 0;
+    margin-bottom: 0.6rem;
+    color: @base;
+    background-color: @base;
+    border: 0.06em solid @surface0;
+}
+
+.widget-dnd .control-center-dnd slider {
+    border-radius: 50%;
+    box-shadow: none;
+    background-color: @surface0;
+}
+
+.widget-dnd .control-center-dnd image {
+    color: rgba(0, 0, 0, 0);
+}
+
+.widget-dnd .control-center-dnd:checked {
+    background: @lavender;
+}
+
+.widget-dnd .control-center-dnd:checked slider {
+    background: @base;
+}
+
+.notification-group box revealer > box {
+    background-color: @base;
+    padding: 0.8rem 0;
+    border-radius: 0.8rem;
+    margin-bottom: 0.2rem;
+}
+
+.notification-group .notification-group-buttons button {
+    background-color: @base;
+    border: 1px solid @surface0;
+}
+
+.notification-group .notification-group-buttons button:hover {
+    background-color: @surface0;
+}
+
+.notification-background {
+    padding: 0.1rem 0;
+    background-color: transparent;
+}
+
+.control-center-list .notification {
+    background-color: @base;
+}
+
+.control-center .notification {
+    border-color: @surface0;
+}
+
+.control-center .notification .notification-content {
+    background-color: @base;
+    padding: 0.5rem;
+}
+
+.control-center
+    .notification
+    .notification-default-action:hover
+    .notification-content {
+    background-color: @surface0;
+}
+
+.control-center .notification .notification-default-action:hover {
+    background-color: @surface0;
+}
+
+.control-center .notification .notification-content .text-box box {
+    padding: 0.4rem 0;
+}
+
+.control-center .notification .notification-content .text-box box .time {
+    opacity: 0.4;
+    font-size: 0.8rem;
+}
+
+.control-center .notification .notification-content .text-box box .summary {
+    font-size: 1.2rem;
+}
+
+.control-center .notification .notification-content .text-box .body {
+    opacity: 0.6;
+}
+
+.control-center .notification .linked .notification-action {
+    background-color: @base;
+    border-color: @surface0;
+}
+
+.control-center .notification .linked .notification-action:hover {
+    background-color: @surface0;
+}

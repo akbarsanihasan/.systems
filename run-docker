@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+case "$1" in
+debian)
+    docker build -f ./deb.dockerfile . -t john
+    docker run --rm -it john /bin/bash
+    exit 0
+    ;;
+arch)
+    docker build -f ./arch.dockerfile . -t johnbtw
+    docker run --rm -it johnbtw /bin/bash
+    exit 0
+    ;;
+esac

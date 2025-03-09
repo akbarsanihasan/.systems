@@ -1,0 +1,10 @@
+USER: "{{ lookup('env', 'USER') }}"
+USER_GITHUB: 'akbarsanihasan'
+HOME_DIR: "{{ lookup('env', 'HOME') }}"
+CONFIG_DIR: '{{ HOME_DIR }}/.config'
+CACHE_DIR: '{{ HOME_DIR }}/.cache'
+DATA_DIR: '{{ HOME_DIR }}/.local/share'
+DOTFILES_CACHE_DIR: '{{ CACHE_DIR }}/dotfiles'
+
+DEB: 'Debian'
+ARCH: 'Archlinux'

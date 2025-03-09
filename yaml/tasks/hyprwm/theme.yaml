@@ -1,0 +1,110 @@
+- name: Installing theme package for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name:
+          - libgtk-3-dev
+          - libgtk-4-dev
+          - qt5ct
+          - qt5-style-kvantum
+          - qt6ct
+          - nwg-look
+          - sassc
+          - adwaita-icon-theme
+          - fonts-inter
+          - fonts-noto-color-emoji
+          - fonts-noto-cjk
+          - fonts-noto-cjk-extra
+          - fonts-font-awesome
+          - fonts-dejavu-core
+          - fonts-liberation
+  tags:
+      - theme
+      - hyprwm
+
+- name: Installing theme package for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name:
+          - gtk3
+          - gtk4
+          - qt5ct
+          - qt6ct
+          - kvantum
+          - nwg-look
+          - sassc
+          - adwaita-cursors
+          - inter-font
+          - noto-fonts-emoji
+          - noto-fonts-cjk
+          - otf-font-awesome
+          - ttf-dejavu
+          - ttf-liberation
+  tags:
+      - theme
+      - hyprwm
+
+- name: Downloading gtk theme
+  ansible.builtin.git:
+      repo: https://github.com/{{ item.repo }}.git
+      dest: '{{ DOTFILES_CACHE_DIR }}/{{ item.dest }}'
+      version: '{{ item.version }}'
+      depth: 1
+      recursive: true
+      update: false
+  loop:
+      - {
+            repo: 'vinceliuice/Colloid-gtk-theme',
+            dest: 'gtk-theme',
+            version: '{{ GTK_THEME_VERSION }}',
+        }
+  tags:
+      - theme
+      - hyprwm
+
+- name: Creating theme directory
+  ansible.builtin.file:
+      dest: '{{ item }}'
+      state: directory
+  loop:
+      - '{{ DATA_DIR }}/themes'
+      - '{{ DATA_DIR }}/icons'
+      - '{{ CONFIG_DIR }}/gtk-4.0'
+  tags:
+      - theme
+      - hyprwm
+
+- name: Installing gtk theme and icon
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/gtk-theme/
+
+      ./install.sh --dest {{ DATA_DIR }}/themes \
+                   --theme purple \
+                   --color dark \
+                   --size compact \
+                   --libadwaita \
+                   --tweaks catppuccin black
+
+      wget -qO- https://git.io/papirus-icon-theme-install \
+                | env DESTDIR="{{ DATA_DIR }}/icons" TAG="{{ ICON_PACK_VERSION }}" sh
+  tags:
+      - theme
+      - hyprwm
+
+- name: Applying gtk theme
+  ansible.builtin.shell: |
+      gsettings set org.gnome.desktop.interface gtk-theme 'Colloid-Purple-Dark-Compact-Catppuccin'
+      gsettings set org.gnome.desktop.wm.preferences theme 'Colloid-Purple-Dark-Compact-Catppuccin'
+      gsettings set org.gnome.desktop.interface color-scheme prefer-dark 
+      gsettings set org.gnome.desktop.interface icon-theme 'Papirus-Dark'
+      gsettings set org.gnome.desktop.interface cursor-theme 'Adwaita'
+      gsettings set org.gnome.desktop.interface font-name 'Inter Display Semi-Bold 14'
+  tags:
+      - theme
+      - hyprwm

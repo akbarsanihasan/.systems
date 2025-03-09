@@ -1,0 +1,18 @@
+- name: Installing nodejs for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name: [nodejs, npm]
+  tags: nodejs
+
+- name: Installing nodejs for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name: [nodejs, npm]
+  tags: nodejs

@@ -1,0 +1,106 @@
+- name: Installing pipewire dependencies for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name:
+          - pipewire
+          - pipewire-audio
+          - pipewire-pulse
+          - pipewire-alsa
+          - pipewire-jack
+          - wireplumber
+          - rtkit
+          - libwebkit2gtk-4.1-dev
+          - playerctl
+          - brightnessctl
+  tags:
+      - audio_video
+      - hyprwm
+
+- name: Installing pipewire dependencies for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name:
+          - pipewire
+          - pipewire-audio
+          - pipewire-pulse
+          - pipewire-alsa
+          - pipewire-jack
+          - wireplumber
+          - rtkit
+          - webkit2gtk
+          - playerctl
+          - brightnessctl
+  tags:
+      - pipewire
+      - hyprwm
+
+- name: Downloading Noise supressor for voice
+  ansible.builtin.git:
+      repo: https://github.com/werman/noise-suppression-for-voice.git
+      dest: '{{ DOTFILES_CACHE_DIR }}/noise_supressor'
+      version: '{{ NOISE_SUPRESSOR_VERSION }}'
+      depth: 1
+      recursive: true
+      update: false
+  tags:
+      - pipewire
+      - hyprwm
+
+- name: Compiling Noise supressor for voice
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/noise_supressor
+
+      cmake --no-warn-unused-cli \
+            -Bbuild \
+            -H. \
+            -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=/usr/local
+
+      cmake --build ./build \
+            --config Release \
+            --target all \
+            -j$(nproc 2>/dev/null || getconf _NPROCESSORS_CONF)
+  tags:
+      - pipewire
+      - hyprwm
+
+- name: Installing Noise supressor for voice
+  become: true
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/noise_supressor
+      cmake --install ./build
+  tags:
+      - pipewire
+      - hyprwm
+
+- name: Enabling pipewire using systemd
+  ansible.builtin.systemd_service:
+      name: '{{ item.name }}'
+      scope: '{{ item.scope }}'
+      enabled: '{{ item.enabled }}'
+      state: '{{ item.state }}'
+      daemon_reload: true
+  loop:
+      - {name: pipewire, scope: user, enabled: true, state: started}
+      - {name: wireplumber, scope: user, enabled: true, state: started}
+  tags:
+      - pipewire
+      - hyprwm
+
+- name: Setting default audio volumes
+  ansible.builtin.shell: |
+      wpctl set-volume @DEFAULT_SINK@ 25%
+
+      wpctl set-volume @DEFAULT_SOURCE@ 25%
+      wpctl set-mute @DEFAULT_SOURCE@ 1
+  tags:
+      - pipewire
+      - hyprwm

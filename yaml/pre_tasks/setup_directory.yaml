@@ -1,0 +1,11 @@
+- name: Creating core directory
+  ansible.builtin.file:
+      dest: '{{ item }}'
+      state: directory
+  loop:
+      - '{{ DATA_DIR }}'
+      - '{{ CACHE_DIR }}'
+      - '{{ CONFIG_DIR }}'
+      - '{{ HOME_DIR }}/.scripts'
+      - '{{ DOTFILES_CACHE_DIR }}'
+  tags: directory

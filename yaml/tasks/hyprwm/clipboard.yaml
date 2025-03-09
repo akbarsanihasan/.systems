@@ -1,0 +1,58 @@
+- name: Downloading wl-clipboard and cliphist source
+  ansible.builtin.git:
+      repo: https://github.com/{{ item.repo }}.git
+      dest: '{{ DOTFILES_CACHE_DIR }}/{{ item.dest }}'
+      version: '{{ item.version }}'
+      depth: 1
+      recursive: true
+      update: false
+  loop:
+      - {
+            repo: bugaevc/wl-clipboard,
+            dest: clipboard,
+            version: '{{ CLIPBOARD_VERSION }}',
+        }
+      - {
+            repo: sentriz/cliphist,
+            dest: cliphist,
+            version: '{{ CLIPHIST_VERSION }}',
+        }
+  tags:
+      - clipboard
+      - hyprwm
+
+- name: Compiling wl-clipboard
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/clipboard 
+      meson setup build --prefix=/usr/local
+      meson compile -C build
+  tags:
+      - clipboard
+      - hyprwm
+
+- name: Installing wl-clipboard
+  become: true
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/clipboard
+      meson install -C build
+  tags:
+      - clipboard
+      - hyprwm
+
+- name: Compiling cliphist
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/cliphist
+      go install
+  tags:
+      - clipboard
+      - hyprwm
+
+- name: Installing cliphist
+  become: true
+  ansible.builtin.copy:
+      src: '{{ HOME_DIR }}/go/bin/cliphist'
+      dest: /usr/local/bin
+      mode: 0755
+  tags:
+      - clipboard
+      - hyprwm

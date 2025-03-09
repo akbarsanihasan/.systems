@@ -1,0 +1,99 @@
+- name: Installing swaync build dependencies for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name:
+          - valac
+          - scdoc
+          - sassc
+          - libgtk-3-dev
+          - libgtk-layer-shell-dev
+          - dbus
+          - libglib2.0-dev
+          - gobject-introspection
+          - libgee-0.8-dev
+          - libjson-glib-dev
+          - libhandy-1-dev
+          - gvfs
+          - libgranite-dev
+          - libpulse-dev
+          - libnotify-dev
+  tags:
+      - swaync
+      - hyprwm
+
+- name: Installing swaync build dependencies for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name:
+          - vala
+          - gtk3
+          - gtk-layer-shell
+          - dbus
+          - glib2
+          - gobject-introspection
+          - libgee
+          - json-glib
+          - libhandy
+          - libpulse
+          - gvfs
+          - libnotify
+          - granite
+  tags:
+      - swaync
+      - hyprwm
+
+- name: Downloading swaync source
+  ansible.builtin.git:
+      repo: 'https://github.com/ErikReider/SwayNotificationCenter.git'
+      dest: '{{ DOTFILES_CACHE_DIR }}/swaync'
+      version: '{{ SWAYNC_VERSION }}'
+      depth: 1
+      recursive: true
+      update: false
+  tags:
+      - swaync
+      - hyprwm
+
+- name: Compiling swaync
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/swaync
+      meson setup build --prefix=/usr/local
+      meson compile -C build
+  tags:
+      - swaync
+      - hyprwm
+
+- name: Installing swaync
+  become: true
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/swaync
+      meson install -C build
+  tags:
+      - swaync
+      - hyprwm
+
+- name: Installing swaync service
+  become: true
+  ansible.builtin.copy:
+      src: '{{ DOTFILES_CACHE_DIR }}/swaync/build/swaync.service'
+      dest: '/usr/local/lib/systemd/user/'
+  tags:
+      - swaync
+      - hyprwm
+
+- name: Enable swaync service using systemd
+  ansible.builtin.systemd_service:
+      name: swaync
+      scope: user
+      enabled: true
+      daemon_reload: true
+  tags:
+      - swaync
+      - hyprwm

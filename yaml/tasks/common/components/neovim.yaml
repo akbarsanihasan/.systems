@@ -1,0 +1,74 @@
+- name: Installing Neovim dependencies for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name: [gettext, tree-sitter-cli, luarocks]
+  tags:
+      - neovim
+      - common
+
+- name: Installing Neovim dependencies for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name: [gettext, tree-sitter-cli, luarocks]
+  tags:
+      - neovim
+      - common
+
+- name: Downloading Neovim source and config
+  ansible.builtin.git:
+      repo: '{{ item.repo }}'
+      dest: '{{ item.dest }}'
+      version: '{{ item.version | default(omit) }}'
+      depth: 1
+      recursive: true
+      update: false
+      accept_hostkey: true
+  loop:
+      - {
+            repo: 'https://github.com/neovim/neovim',
+            dest: '{{ DOTFILES_CACHE_DIR }}/neovim',
+            version: '{{ NEOVIM_VERSION }}',
+        }
+      - {
+            repo: 'https://github.com/{{ USER_GITHUB }}/Nvimrc.git',
+            dest: '{{ playbook_dir }}/.contents/nvimrc',
+        }
+  tags:
+      - neovim
+      - common
+
+- name: Compiling Neovim
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/neovim
+      make deps
+      make CMAKE_BUILD_TYPE=Release \
+           CMAKE_PREFIX_PATH=/usr/local \
+           -j$(nproc 2>/dev/null || getconf _NPROCESSORS_CONF)
+  tags:
+      - neovim
+      - common
+
+- name: Installing Neovim
+  become: true
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/neovim
+      make install
+  tags:
+      - neovim
+      - common
+
+- name: Installing Neovim config
+  ansible.builtin.file:
+      src: '{{ playbook_dir }}/.contents/nvimrc'
+      dest: '{{ CONFIG_DIR }}/nvim'
+      state: 'link'
+  tags:
+      - neovim
+      - common

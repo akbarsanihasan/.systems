@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "./header"
+
+sudo -v
+clear
+
+setup_os() {
+    case "$OS" in
+    debian)
+        if [[ ! -f /etc/apt/sources.list.d/debian.sources ]]; then
+            if ! grep '^# DOTFILES' /etc/apt/sources.list; then
+                echo "# DOTFILES" | sudo tee /etc/apt/sources.list
+                echo "# Sources list modified $(date)" | sudo tee -a /etc/apt/sources.list
+                echo "deb http://deb.debian.org/debian ${VERSION_CODENAME} main contrib non-free non-free-firmware" | sudo tee -a /etc/apt/sources.list
+                echo "deb http://deb.debian.org/debian ${VERSION_CODENAME}-updates main contrib non-free non-free-firmware" | sudo tee -a /etc/apt/sources.list
+                echo "deb http://security.debian.org/debian-security ${VERSION_CODENAME}-security main contrib non-free non-free-firmware" | sudo tee -a /etc/apt/sources.list
+
+                sudo apt modernize-sources -y
+            fi
+        fi
+
+        if [[ ! -f /etc/apt/sources.list.d/backports.lists ]] && [[ ! -f /etc/apt/sources.list.d/backports.sources ]]; then
+            echo "deb http://deb.debian.org/debian ${VERSION_CODENAME}-backports main contrib non-free non-free-firmware" | sudo tee -a /etc/apt/sources.list.d/backports.list
+            sudo apt modernize-sources -y
+        fi
+
+        sudo apt-get update -y
+        sudo apt-get upgrade -y
+        ;;
+    arch)
+        if [[ ! -f /etc/ld.so.conf.d/local.conf ]]; then
+            echo "/usr/local/lib" | sudo tee /etc/ld.so.conf.d/local.conf
+            sudo ldconfig
+        fi
+
+        if grep -E '^#Color' /etc/pacman.conf &>/dev/null; then
+            sudo sed -i '/^#Color/s/^#//' /etc/pacman.conf
+        fi
+
+        if grep -E '^#ParallelDownloads[[:space:]]*=[[:space:]]*[0-9]\+' /etc/pacman.conf &>/dev/null; then
+            sudo sed -i '/^#ParallelDownloads[[:space:]]*=[[:space:]]*[0-9]\+/s/^#//' /etc/pacman.conf
+        fi
+
+        if grep -A 1 '^#[[:space:]]*\[multilib\]' /etc/pacman.conf &>/dev/null; then
+            sudo sed -i '/^#[[:space:]]*\[multilib\]/,/^#[[:space:]]*Include = \/etc\/pacman.d\/mirrorlist/s/^#//' /etc/pacman.conf
+        fi
+
+        sudo pacman -Sy
+        sudo pacman -Syu
+        ;;
+    esac
+}
+
+install_git() {
+    case "$OS" in
+    arch)
+        sudo pacman -Sy
+        sudo pacman -S --noconfirm git
+        ;;
+    debian)
+        sudo apt-get update -y
+        sudo apt install -y git
+        ;;
+    esac
+}
+
+install_python() {
+    case "$OS" in
+    arch)
+        sudo pacman -Sy
+        sudo pacman -S --noconfirm python
+        ;;
+    debian)
+        sudo apt-get update -y
+        sudo apt install -y python3
+        ;;
+    esac
+}
+
+install_pipx() {
+    case "$OS" in
+    arch)
+        sudo pacman -Sy
+        sudo pacman -S --noconfirm python-pipx
+        ;;
+    debian)
+        sudo apt-get update -y
+        sudo apt install -y pipx
+        ;;
+    esac
+}
+
+echo -e "* Preparing OS"
+if ! setup_os >/dev/null 2>"$LOGFILE"; then
+    echo -e "$ERROR, Failed preparing os, see log $LOGFILE"
+    exit 1
+fi
+
+if [[ $ISGIT == "$ERROR" ]]; then
+    echo -e "** Installing git"
+    if ! install_git >/dev/null 2>"$LOGFILE"; then
+        clear
+        echo -e "$ERROR, Failed to install git, see log $LOGFILE"
+        exit 1
+    fi
+fi
+
+if [[ $ISPYTHON == "$ERROR" ]]; then
+    echo -e "** Installing python"
+    if ! install_python >/dev/null 2>"$LOGFILE"; then
+        clear
+        echo -e "$ERROR, Failed to install python, see log $LOGFILE"
+        exit 1
+    fi
+fi
+
+if [[ $ISPIPX == "$ERROR" ]]; then
+    echo -e "** Installing pipx"
+    if ! install_pipx >/dev/null 2>"$LOGFILE"; then
+        clear
+        echo -e "$ERROR, Failed to install pipx, see log $LOGFILE"
+        exit 1
+    fi
+fi
+
+if [[ $ISANSIBLE == "$ERROR" ]]; then
+    echo -e "** Installing ansible"
+    if ! pipx install --include-deps ansible==$ANSIBLE_VERSION >/dev/null 2>"$LOGFILE"; then
+        clear
+        echo -e "$ERROR, Failed to install ansible $ANSIBLE_VERSION, see log $LOGFILE"
+        exit 1
+    fi
+fi
+
+if [[ -n $OS ]]; then
+    clear
+    ansible-playbook local.yaml "${ANSIBLE_ARGS[@]}" "${@}"
+fi

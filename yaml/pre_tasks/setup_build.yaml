@@ -1,0 +1,48 @@
+- name: Installing common build packages for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      name:
+          - build-essential
+          - meson
+          - ninja-build
+          - make
+          - cmake
+          - autoconf
+          - automake
+          - libtool
+          - extra-cmake-modules
+          - ccache
+          - curl
+          - wget
+          - tar
+          - zip
+          - unzip
+          - unrar
+          - p7zip-full
+  tags: build
+
+- name: Installing common build packages for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name:
+          - base-devel
+          - meson
+          - ninja
+          - make
+          - cmake
+          - extra-cmake-modules
+          - ccache
+          - curl
+          - wget
+          - tar
+          - zip
+          - unzip
+          - unrar
+          - p7zip
+  tags: build

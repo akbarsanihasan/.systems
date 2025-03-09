@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+count_packages="0"
+
+if command -v pacman &>/dev/null; then
+    count_packages=$(pacman -Qu | wc -l)
+fi
+
+if command -v apt-get &>/dev/null; then
+    count_packages=$(apt list --upgradable 2>/dev/null | tail -n +2 | wc -l)
+fi
+
+if [[ "${count_packages}" -gt "9" ]]; then
+    echo "9+"
+elif [[ "$count_packages" -gt 0 ]]; then
+    echo "0${count_packages}"
+else
+    echo "${count_packages}"
+fi

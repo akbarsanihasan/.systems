@@ -1,0 +1,71 @@
+@import "../lib/colorscheme.rasi"
+
+* {
+   font: "Inter Display, JetBrainsMono NF 14";
+   text-color: @text;
+   background-color: transparent;
+}
+
+window {
+    width: 40%;
+    height: 50%;
+    location: north;
+    x-offset: 0;
+    y-offset: 12%;
+    border-radius: 16px;
+    background-color: @crust;
+}
+
+mainbox {
+    border: 1px;
+    border-color: @surface0;
+    border-radius: inherit;
+}
+
+inputbar {
+    padding: 1em 1.2em;
+}
+
+prompt {
+    margin: 0 0.8em 0 0;
+    font: "Inter Display, JetBrainsMono NFP 22";
+    text-style: bold;
+}
+
+entry {
+    font: "Inter Display, JetBrainsMono NFP 22";
+    text-style: bold;
+    placeholder: "  Search";
+    placeholder-color: @surface0;
+    vertical-align: 0.5;
+}
+
+message {
+    padding: 0 1em 1.2em;
+}
+
+entry {
+   vertical-align: 0.5;
+    font: "Inter Display 20 Bold";
+    text-style: bold;
+}
+
+element {
+    padding: 0.5em 1em;
+    background-color: transparent;
+}
+
+element-icon {
+    background-color: transparent;
+    size: 1.6em;
+    margin: 0 0.3em;
+}
+
+element-text {
+    background-color: transparent;
+    vertical-align: 0.5;
+}
+
+element selected {
+    background-color: @base;
+}

@@ -1,0 +1,76 @@
+- name: Installing sddm for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name: [sddm, qt6-svg-dev, qt6-declarative-dev]
+  tags:
+      - sddm
+      - hyprwm
+
+- name: Installing sddm for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name: [sddm, qt6-svg, qt6-declarative]
+  tags:
+      - sddm
+      - hyprwm
+
+- name: Downloading sddm theme
+  ansible.builtin.get_url:
+      url: 'https://github.com/catppuccin/sddm/releases/download/{{ SDDM_THEME_VERSION }}/catppuccin-mocha.zip'
+      dest: '{{ DOTFILES_CACHE_DIR }}/sddm-theme.zip'
+  tags:
+      - sddm
+      - hyprwm
+
+- name: Creating sddm theme directory
+  become: true
+  ansible.builtin.file:
+      dest: /usr/share/sddm/themes
+      state: directory
+  tags:
+      - sddm
+      - hyprwm
+
+- name: Installing sddm theme
+  become: true
+  ansible.builtin.unarchive:
+      src: '{{ DOTFILES_CACHE_DIR }}/sddm-theme.zip'
+      dest: /usr/share/sddm/themes
+  tags:
+      - sddm
+      - hyprwm
+
+- name: Configuring sddm autologin
+  become: true
+  ansible.builtin.ini_file:
+      path: /etc/sddm.conf
+      section: '{{ item.section }}'
+      option: '{{ item.option }}'
+      value: '{{ item.value }}'
+      create: true
+      backup: true
+  loop:
+      - {option: User, value: '{{ USER }}', section: Autologin}
+      - {option: Session, value: hyprland-uwsm, section: Autologin}
+      - {option: Current, value: catppuccin-mocha, section: Theme}
+  tags:
+      - sddm
+      - hyprwm
+
+- name: Enabling sddm using systemd
+  become: true
+  ansible.builtin.systemd_service:
+      name: sddm
+      scope: system
+      enabled: true
+      daemon_reload: true
+  tags:
+      - sddm
+      - hyprwm

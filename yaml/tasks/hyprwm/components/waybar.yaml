@@ -1,0 +1,118 @@
+- name: Installing waybar build packages for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name:
+          - valac
+          - clang-tidy
+          - gobject-introspection
+          - libdbusmenu-gtk3-dev
+          - libevdev-dev
+          - libfmt-dev
+          - libgirepository1.0-dev
+          - libgtk-3-dev
+          - libgtkmm-3.0-dev
+          - libinput-dev
+          - libjsoncpp-dev
+          - libmpdclient-dev
+          - libnl-3-dev
+          - libnl-genl-3-dev
+          - libpulse-dev
+          - libsigc++-2.0-dev
+          - libspdlog-dev
+          - libwayland-dev
+          - scdoc
+          - upower
+          - libxkbregistry-dev
+  tags:
+      - waybar
+      - hyprwm
+
+- name: Installing waybar build packages for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name:
+          - catch2
+          - wayland-protocols
+          - python-setuptools
+          - glib2-devel
+          - gtkmm3
+          - libjsoncpp.so
+          - libsigc++
+          - fmt
+          - libjack.so
+          - wayland
+          - libdate-tz.so
+          - libspdlog.so
+          - gtk-layer-shell
+          - libupower-glib.so
+          - upower
+          - libevdev
+          - libinput
+          - libpulse
+          - libnl
+          - libappindicator-gtk3
+          - libdbusmenu-gtk3
+          - libmpdclient
+          - libsndio.so
+          - libxkbcommon
+          - libwireplumber
+          - playerctl
+  tags:
+      - waybar
+      - hyprwm
+
+- name: Downloading waybar source
+  ansible.builtin.git:
+      repo: 'https://github.com/Alexays/Waybar'
+      dest: '{{ DOTFILES_CACHE_DIR }}/waybar'
+      version: '{{ WAYBAR_VERSION }}'
+      depth: 1
+      recursive: true
+      update: false
+  tags:
+      - waybar
+      - hyprwm
+
+- name: Compiling waybar
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/waybar
+      meson setup build --prefix=/usr/local
+      meson compile -C build
+  tags:
+      - waybar
+      - hyprwm
+
+- name: Installing waybar
+  become: true
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/waybar
+      meson install -C build
+  tags:
+      - waybar
+      - hyprwm
+
+- name: Installing waybar service
+  become: true
+  ansible.builtin.copy:
+      src: '{{ playbook_dir }}/.contents/services/waybar.service'
+      dest: '/usr/local/lib/systemd/user/'
+  tags:
+      - waybar
+      - hyprwm
+
+- name: Enable waybar service using systemd
+  ansible.builtin.systemd_service:
+      name: waybar
+      scope: user
+      enabled: true
+      daemon_reload: true
+  tags:
+      - waybar
+      - hyprwm

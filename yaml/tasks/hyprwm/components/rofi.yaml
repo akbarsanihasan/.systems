@@ -1,0 +1,121 @@
+- name: Installing rofi build dependencies for Debian
+  become: true
+  when: ansible_facts.os_family == DEB
+  ansible.builtin.apt:
+      update_cache: true
+      state: latest
+      install_recommends: false
+      name:
+          - libwayland-dev
+          - wayland-protocols
+          - flex
+          - qalc
+          - bison
+          - wtype
+          - libpango1.0-dev
+          - libpangocairo-1.0-0
+          - libgdk-pixbuf-2.0-dev
+          - libstartup-notification0-dev
+          - libxkbcommon-dev
+          - libxkbcommon-x11-dev
+          - libxcb-xkb-dev
+          - libxcb-randr0-dev
+          - libxcb-xinerama0-dev
+          - libxcb-util-dev
+          - libxcb-ewmh-dev
+          - libxcb-icccm4-dev
+          - libxcb-cursor-dev
+          - libxcb-imdkit-dev
+          - libqalculate-dev
+  tags:
+      - rofi
+      - hyprwm
+
+- name: Installing rofi build dependencies for Archlinux
+  become: true
+  when: ansible_facts.os_family == ARCH
+  community.general.pacman:
+      update_cache: true
+      state: latest
+      name:
+          - check
+          - wayland
+          - wtype
+          - librsvg
+          - libxdg-basedir
+          - libxkbcommon-x11
+          - startup-notification
+          - xcb-util-cursor
+          - xcb-util-keysyms
+          - xcb-util-wm
+          - xcb-util-xrm
+          - libqalculate
+  tags:
+      - rofi
+      - hyprwm
+
+- name: Downloading rofi source
+  ansible.builtin.git:
+      repo: 'https://github.com/{{ item.repo }}.git'
+      dest: '{{ DOTFILES_CACHE_DIR }}/{{ item.dest }}'
+      version: '{{ item.version }}'
+      depth: 1
+      recursive: true
+      update: false
+  loop:
+      - {repo: 'lbonn/rofi', dest: 'rofi', version: '{{ ROFI_VERSION }}'}
+      - {
+            repo: 'svenstaro/rofi-calc',
+            dest: 'rofi-calc',
+            version: '{{ ROFI_CALC_VERSION }}',
+        }
+      - {
+            repo: 'mange/rofi-emoji',
+            dest: 'rofi-emoji',
+            version: '{{ ROFI_EMOJI_VERSION }}',
+        }
+  tags:
+      - rofi
+      - hyprwm
+
+- name: Compiling rofi wayland
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/rofi
+      meson setup build --prefix=/usr/local -Dwayland=enabled
+  tags:
+      - rofi
+      - hyprwm
+
+- name: Installing rofi wayland
+  become: true
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/rofi
+      meson install -C build
+  tags:
+      - rofi
+      - hyprwm
+
+- name: Compiling rofi library
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/{{ item }}
+      autoreconf -i
+      ./configure --prefix=/usr/local
+      make
+  loop:
+      - rofi-calc
+      - rofi-emoji
+  tags:
+      - rofi
+      - hyprwm
+
+- name: Installing rofi library
+  become: true
+  ansible.builtin.shell: |
+      cd {{ DOTFILES_CACHE_DIR }}/{{ item }}
+      make install
+  loop:
+      - rofi-calc
+      - rofi-emoji
+  tags:
+      - rofi
+      - hyprwm

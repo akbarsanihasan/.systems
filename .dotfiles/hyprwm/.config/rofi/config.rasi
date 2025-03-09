@@ -1,0 +1,11 @@
+@theme "common"
+
+configuration {
+    modes: [ combi, drun, calc, emoji ];
+    markup: true;
+    matching: "fuzzy";
+    show-icons: false;
+    display-drun: '';
+    display-calc: '';
+    display-emoji: '';
+}
